@@ -1,0 +1,105 @@
+﻿@{
+    ViewBag.Title = "ScheduleAppointment";
+}
+
+@model XRayHub.Models.AppointmentViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title -->
+    <title>Schedule Appointment</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Bootstrap Datepicker CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.min.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Custom Styles for Better UX -->
+    <style>
+        #calendarIcon:hover {
+            cursor: pointer;
+            background-color: #e9ecef; /* Slightly darker background on hover for calendar icon */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-5">
+        <h2>Schedule an Appointment</h2>
+        <form action="/Appointments/ScheduleAppointment" method="post">
+
+            <!-- Date Picker -->
+            <div class="form-group">
+                <label for="appointmentDate">Date:</label>
+                <div class="input-group">
+                    <input type="text" id="appointmentDate" name="DateScheduled" class="form-control" required>
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="calendarIcon"><i class="fa fa-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dropdown for Medical Practitioner -->
+            <div class="form-group">
+                <label for="medicalPractitionerDropdown">Medical Practitioner:</label>
+                <select id="medicalPractitionerDropdown" name="PractitionerID" class="form-control" required>
+                    @if (ViewBag.Practitioners != null)
+                    {
+                        foreach (var practitioner in ViewBag.Practitioners)
+                        {
+                            <option value="@practitioner.PractitionerID">@practitioner.FirstName @practitioner.LastName</option>
+                        }
+                    }
+                    else
+                    {
+                        <option>No practitioners available</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Reason for Appointment -->
+            <div class="form-group">
+                <label for="reason">Reason:</label>
+                <textarea id="reason" name="Reason" class="form-control" rows="4" required></textarea>
+            </div>
+
+            <!-- Schedule Button -->
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Schedule</button>
+            </div>
+        </form>
+    </div>
+
+
+    <!-- jQuery, Bootstrap JS and Bootstrap Datepicker JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+    <script>
+        var jqOld = jQuery.noConflict();
+
+    jqOld(function() {
+        jqOld("#appointmentDate").datepicker({
+            format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true
+        });
+
+        jqOld("#calendarIcon").click(function() {
+            jqOld("#appointmentDate").focus();  // this will trigger the datepicker to show up
+        });
+    });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,37 @@
+﻿
+@{
+    ViewBag.Title = "ReviewAppointments";
+}
+
+@model IEnumerable<XRayHub.Models.Appointment>
+
+<h2>Review Appointments</h2>
+  @if (Model == null)
+{
+    <p>Model is null</p>
+}
+else if (!Model.Any())
+{
+    <p>Model is empty</p>
+}
+
+<table class="table">
+    <tr>
+        <th>Date Scheduled</th>
+        <th>Patient</th>
+        <th>Type of X-ray</th>
+        <th>Status</th>
+        <th>Reason</th>
+    </tr>
+  
+    @foreach (var appointment in Model)
+    {
+        <tr>
+            <td>@appointment.DateScheduled</td>
+            <td>@appointment.Patient.FirstName</td> <!-- Assuming Patient model has a Name property -->
+            <td>@appointment.TypeOfXray</td>
+            <td>@appointment.Status</td>
+            <td>@appointment.Reason</td>
+        </tr>
+    }
+</table>

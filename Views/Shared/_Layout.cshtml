@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper" class="bg-dark">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand text-white" })
+                </li>
+                @if (User.IsInRole("Patient"))
+                {
+                    <li>@Html.ActionLink("Dashboard", "Dashboard", "Patient", null, new { @class = "text-white" })</li>
+                    <li>@Html.ActionLink("Profile", "Profile", "Patient", null, new { @class = "text-white" })</li>
+                    <li>@Html.ActionLink("Appointments", "Appointments", "Patient", null, new { @class = "text-white" })</li>
+                    <li>@Html.ActionLink("Review X-ray Records", "ReviewRecords", "Patient", null, new { @class = "text-white" })</li>
+                }
+                else if (User.IsInRole("MedicalPractitioner"))
+                {
+                    <li>@Html.ActionLink("Dashboard", "Dashboard", "MedicalPractitioner", null, new { @class = "text-white" })</li>
+                    <li>@Html.ActionLink("Profile", "Profile", "MedicalPractitioner", null, new { @class = "text-white" })</li>
+                    <li>@Html.ActionLink("Upload X-ray", "UploadXray", "MedicalPractitioner", null, new { @class = "text-white" })</li>
+                    <li>@Html.ActionLink("Review Appointments", "ReviewAppointments", "MedicalPractitioner", null, new { @class = "text-white" })</li>
+                }
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+
+                <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark mb-3">
+                    <div class="container">
+                        @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
+                                aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
+                            <ul class="navbar-nav flex-grow-1">
+                                @* ... other top nav links ... *@
+                            </ul>
+                            @Html.Partial("_LoginPartial") <!-- Keeping the email and log off on the right -->
+                        </div>
+                    </div>
+                </nav>
+                <button class="btn btn-dark" id="menu-toggle">Toggle Menu</button>
+                @RenderBody()
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+    </div>
+
+    <!-- Scripts -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script>
+    $("#menu-toggle").click(function (e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    </script>
+    @RenderSection("scripts", required: false)
+
+</body>
+</html>
