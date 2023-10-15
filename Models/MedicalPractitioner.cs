@@ -48,5 +48,8 @@ namespace XRayHub.Models
         public virtual ICollection<Appointment> Appointments { get; set; }
 
         public virtual AspNetUser AspNetUser { get; set; }
+        public string Facility { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }

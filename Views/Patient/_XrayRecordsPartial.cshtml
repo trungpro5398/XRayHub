@@ -1,0 +1,40 @@
+﻿﻿@model XRayHub.Models.XrayViewModel
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Description</th>
+            <th scope="col">Image</th>
+            <th scope="col">Created At</th>
+            <th scope="col">Practitioner</th> <!-- Added column header -->
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var record in Model.XrayRecords)
+        {
+            var practitionerID = record.PractitionerID.HasValue ? record.PractitionerID.Value : 0; // defaulting to 0 if null
+            var practitionerName = Model.PractitionerNames.ContainsKey(practitionerID)
+                                                   ? Model.PractitionerNames[practitionerID]
+                                                   : "Unknown";
+
+
+            <tr data-practitioner-id="@record.PractitionerID">
+                <td>@practitionerName</td>
+
+                <td>@record.Description</td>
+                <td>
+                    <img src="@Url.Content(record.XrayImagePath)" width="100"
+                         style="cursor:zoom-in"
+                         onclick="zoomImage('@Url.Content(record.XrayImagePath)')"
+                         alt="X-ray image" />
+                </td>
+                <td>@record.CreatedAt</td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="openFeedback('@record.RecordID', '@record.PractitionerID')">Give Feedback <i class="fas fa-comment"></i></button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

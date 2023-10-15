@@ -1,0 +1,50 @@
+﻿
+@{
+    ViewBag.Title = "_AppointmentsListPartial";
+}
+
+@model IEnumerable<XRayHub.Models.Appointment>
+
+
+<table class="table table-striped mt-4">
+    <thead>
+        <tr>
+            <th>Select</th>
+            <th>Date Scheduled</th>
+            <th>Patient</th>
+            <th>Type of X-ray</th>
+            <th>Status</th>
+            <th>Reason</th>
+            @*<th>Action</th>*@
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var appointment in Model)
+        {
+            var fullName = @appointment.Patient.FirstName + @appointment.Patient.LastName;
+            <tr>
+                <td><input type="checkbox" class="emailCheckbox" data-email="@appointment.Patient.Email" /></td>
+                <td>@appointment.DateScheduled</td>
+                <td>@fullName</td>
+                <td>@appointment.TypeOfXray</td>
+                <td>
+                    <select class="form-control status-dropdown" data-appointment-id="@appointment.AppointmentID">
+                        <option class="scheduled" value="Scheduled" @(appointment.Status == "Scheduled" ? "selected" : "")>Scheduled</option>
+                        <option class="completed" value="Completed" @(appointment.Status == "Completed" ? "selected" : "")>Completed</option>
+                        <option class="cancelled" value="Cancelled" @(appointment.Status == "Cancelled" ? "selected" : "")>Cancelled</option>
+
+                    </select>
+                </td>
+                <td>@appointment.Reason</td>
+                @*<td>
+                        <button class="btn btn-sm btn-info" data-toggle="tooltip" data-placement="top" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" data-toggle="tooltip" data-placement="top" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>*@
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,317 @@
+﻿﻿
+@model XRayHub.Models.XrayViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"> <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <title>Patient's X-ray Records</title>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h2>Your X-ray Records</h2>
+
+        <!-- X-ray Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">X-ray Filters</h5>
+                <form id="filterForm">
+                    <div class="row">
+                        <!-- Date Range -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>From Date:</label>
+                                <input type="date" id="fromDate" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>To Date:</label>
+                                <input type="date" id="toDate" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- X-ray Type -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Type:</label>
+                                <select id="xrayType" class="form-control">
+                                    <option value="">Select Type</option>
+                                    @foreach (var type in Model.XrayTypes)
+                                    {
+                                        <option value="@type.TypeName">@type.TypeName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Practitioner Filter -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Practitioner:</label>
+                                <select id="practitionerId" class="form-control">
+                                    <option value="">Select Practitioner</option>
+                                    @foreach (var practitioner in Model.PractitionerNames)
+                                    {
+                                        <option value="@practitioner.Key">@practitioner.Value</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Practitioner</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Image</th>
+                    <th scope="col">Created At</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var record in Model.XrayRecords)
+                {
+                    var practitionerID = record.PractitionerID.HasValue ? record.PractitionerID.Value : 0; // defaulting to 0 if null
+                    var practitionerName = Model.PractitionerNames.ContainsKey(practitionerID)
+                                                           ? Model.PractitionerNames[practitionerID]
+                                                           : "Unknown";
+
+
+                    <tr data-practitioner-id="@record.PractitionerID">
+                        <td>@practitionerName</td>
+
+                        <td>@record.Description</td>
+                        <td>
+                            <img src="@Url.Content(record.XrayImagePath)" width="100"
+                                 style="cursor:zoom-in"
+                                 onclick="zoomImage('@Url.Content(record.XrayImagePath)')"
+                                 alt="X-ray image" />
+                        </td>
+                        <td>@record.CreatedAt</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="openFeedback('@record.RecordID', '@record.PractitionerID')">Give Feedback <i class="fas fa-comment"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- Image zoom modal -->
+    <div id="zoomedImageModal" class="modal">
+        <span onclick="document.getElementById('zoomedImageModal').style.display='none'"
+              class="close" title="Close Modal">&times;</span>
+        <img class="modal-content" id="img01">
+        <div id="caption"></div>
+    </div>
+
+    <!-- Feedback modal -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Give Feedback</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Rating:</label>
+                        <div class="rating">
+                            <i class="far fa-star" data-value="1"></i> <!-- Not active star -->
+                            <i class="far fa-star" data-value="2"></i>
+                            <i class="far fa-star" data-value="3"></i>
+                            <i class="far fa-star" data-value="4"></i>
+                            <i class="far fa-star" data-value="5"></i>
+                            <input type="hidden" id="rating" asp-for="UserFeedback.Rating" value="0">
+                        </div>
+
+
+                    </div>
+                    <div class="form-group">
+                        <label>Feedback:</label>
+                        <textarea class="form-control" id="feedbackText" asp-for="UserFeedback.Comments" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="submitFeedback()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @Html.Partial("~/Views/Chat/_ChatbotPartial.cshtml")
+
+    <!-- Scripts -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script>
+        var FirstName = '@Model.FirstName';
+        var LastName = '@Model.LastName';
+        function zoomImage(imagePath) {
+            document.getElementById("img01").src = imagePath;
+            document.getElementById("zoomedImageModal").style.display = "block";
+        }
+
+        function openFeedback(recordID, practitionerId) {
+            // Store recordID and practitionerId for further processing (like submitting feedback)
+            let modalElement = document.getElementById("feedbackModal");
+            modalElement.dataset.recordId = recordID;
+            modalElement.dataset.practitionerId = practitionerId;
+
+            $('#feedbackModal').modal('show');  // Show feedback modal
+        }
+
+        $(document).ready(function () {
+            $('.rating .fa-star').on('click', function () {
+                let value = $(this).data('value');
+                $('#rating').val(value);
+                updateStars(value);
+            });
+        });
+
+        function updateStars(value) {
+            $('.rating .fa-star').each(function () {
+                if ($(this).data('value') <= value) {
+                    $(this).removeClass('far').addClass('fas active'); // Change to solid star and add active class
+                } else {
+                    $(this).removeClass('fas active').addClass('far'); // Change to regular star and remove active class
+                }
+            });
+        }
+
+        function applyFilters() {
+            // You will get the filter values using jQuery
+            let fromDate = $('#fromDate').val();
+            let toDate = $('#toDate').val();
+            let xrayType = $('#xrayType').val();
+            let practitionerID = $('#practitionerId').val();
+            // Use AJAX to fetch filtered X-rays from the server
+            $.ajax({
+                url: "/Patient/GetFilteredXrays",
+                type: "GET",
+                data: {
+                    fromDate: fromDate,
+                    toDate: toDate,
+                    xrayType: xrayType,
+                    practitionerID: practitionerID
+                },
+                success: function (response) {
+                    // Assuming 'response' is the rendered HTML from the partial view.
+                    // Replace the contents of the table with the filtered results.
+                    $('.table tbody').html(response);
+                },
+                error: function (xhr, status, error) {
+                    // Handle any errors
+                    alert("Error fetching filtered X-rays: " + error);
+                }
+            });
+        }
+
+        function submitFeedback() {
+            let recordID = parseInt($("#feedbackModal").data("recordId"), 10);
+            let practitionerID = parseInt($("#feedbackModal").data("practitionerId"), 10);
+
+            let rating = parseInt($("#rating").val(), 10);
+            let comments = $("#feedbackText").val();
+
+            // Post feedback to server using AJAX
+            $.ajax({
+                url: "/Patient/CreateFeedback",
+                type: "POST",
+                data: {
+                    RecordID: recordID,
+                    PractitionerID: practitionerID,
+                    Rating: rating,
+                    Comments: comments ,
+                    FeedbackGiver: FirstName + " " + LastName
+                },
+                success: function (response) {
+                    // Check if the response indicates success
+                    if (response && response.success) {
+                        alert("Feedback submitted successfully!");
+                    } else {
+                        alert("Feedback submission failed: " + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Handle error
+                    alert("Error submitting feedback: " + error);
+                }
+            });
+
+            $('#feedbackModal').modal('hide');
+        }
+
+
+    </script>
+
+    <style>
+        .rating .fa-star {
+            cursor: pointer;
+            color: gray;
+        }
+
+            .rating .fa-star.active {
+                color: yellow;
+            }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            padding-top: 60px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+            .close:hover,
+            .close:focus {
+                color: #bbb;
+                text-decoration: none;
+                cursor: pointer;
+            }
+    </style>
+
+
+</body>
+</html>

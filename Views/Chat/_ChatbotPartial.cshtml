@@ -1,0 +1,184 @@
+﻿@{
+    ViewBag.Title = "_ChatbotPartial";
+}
+
+<!-- Styles -->
+<style>
+    #toggleChatbot {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1001;
+    }
+
+    #chatContainer {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        z-index: 1000;
+        width: 350px; /* Set a maximum width */
+        height: 500px;
+        background-color: #f7f7f7;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #chatHeader {
+        background-color: #007bff;
+        color: white;
+        padding: 8px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+
+
+
+    .user-message {
+        background-color: #007bff;
+        color: white;
+        margin-left: 10px;
+    }
+
+    .bot-message {
+        background-color: #e6e6e6;
+        color: #333;
+        margin-right: 10px;
+        align-self: flex-end;
+    }
+
+    #chatMessages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Align children (messages) to the start */
+    }
+
+    .user-message, .bot-message {
+        display: inline-block; /* Makes the width adapt to the content */
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 90%; /* This ensures messages won't get too wide */
+    }
+
+    #userInputContainer {
+        display: flex;
+        padding: 5px 10px; /* Reduce the vertical padding slightly */
+        align-items: center;
+    }
+
+    #userInput {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-top: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-radius: 10px;
+        margin-right: 5px;
+    }
+
+    #sendMessage {
+        background-color: transparent;
+        border: none;
+        color: #007bff;
+    }
+</style>
+
+<button id="toggleChatbot" class="btn btn-primary">
+    <i id="chatIcon" class="fas fa-comment"></i>
+</button>
+
+<div id="chatContainer" class="mt-3" style="display: none;">
+    <div id="chatHeader">XRayHub Assistant</div>
+    <div id="chatMessages"></div>
+    <div id="userInputContainer" class="p-2">
+        <input type="text" id="userInput" placeholder="Type your message..." />
+
+        <!-- Updated send button to use the Facebook messenger-like icon -->
+        <button id="sendMessage" class="btn"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+<!-- Scripts -->
+@Scripts.Render("~/bundles/jquery")
+@Scripts.Render("~/bundles/bootstrap")
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        function scrollToBottom() {
+            $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+        }
+
+        // Toggle chatbot
+        $(document).on('click', '#toggleChatbot', function () {
+            $('#chatContainer').toggle();
+            $('#chatIcon').toggleClass('fas fa-comment fas fa-times');
+        });
+
+        // Close chatbot
+        $(document).on('click', '#closeChat', function () {
+            $('#chatContainer').hide();
+            $('#chatIcon').removeClass('fas fa-times').addClass('fas fa-comment');
+        });
+        // Handle user message by pressing Enter key
+        $('#userInput').on('keypress', function (e) {
+            if (e.which == 13) { // 13 is the Enter key's code
+                e.preventDefault(); // Prevent default Enter key action
+                $('#sendMessage').click(); // Trigger the send button click event
+            }
+        });
+
+        // Animated "..." for bot's loading message
+        function animateLoadingDots(element) {
+            let count = 0;
+            return setInterval(function () {  // return the interval ID
+                count++;
+                let dots = new Array((count % 4) + 1).join('.');
+                element.text(dots);
+            }, 500);
+        }
+
+        // Handle user message
+        $(document).on('click', '#sendMessage', function () {
+            const userInput = $('#userInput').val();
+
+            // Append user's message
+            const userMessageElement = $('<div class="user-message"></div>').text(userInput);
+            $('#chatMessages').append(userMessageElement);
+            scrollToBottom();
+
+            // Append placeholder for bot's response
+            const botPlaceholder = $('<div class="bot-message">...</div>'); // "..." is a loading indication
+            $('#chatMessages').append(botPlaceholder);
+
+            // Use animated dots for bot's loading indication
+            const loadingInterval = animateLoadingDots(botPlaceholder);  // store the interval ID
+
+            // Send user message to Dialogflow using AJAX
+            $.ajax({
+                type: 'POST',
+                url: '/Chatbot/SendMessageToDialogflow',
+                data: { userInput: userInput },
+                success: function (response) {
+                    clearInterval(loadingInterval);  // clear the interval
+                    botPlaceholder.text(response);   // replace placeholder with actual response
+                    scrollToBottom();
+                },
+                error: function (error) {
+                    clearInterval(loadingInterval);  // clear the interval
+                    botPlaceholder.text("Sorry, there was an error.");
+                    console.error(error);
+                }
+            });
+
+            // Clear the user input field
+            $('#userInput').val('');
+        });
+
+    });
+
+</script>

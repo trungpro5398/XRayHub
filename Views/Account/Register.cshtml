@@ -3,56 +3,106 @@
     ViewBag.Title = "Register";
 }
 
-<main aria-labelledby="title">
-    <h2 id="title">@ViewBag.Title.</h2>
-
-    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
-    {
-        @Html.AntiForgeryToken()
-        <h4>Create a new account.</h4>
-        <hr />
-        @Html.ValidationSummary("", new { @class = "text-danger" })
-        <div class="row">
-            @Html.LabelFor(m => m.Email, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
-            </div>
-        </div>
-        <div class="row">
-            @Html.LabelFor(m => m.Password, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
-            </div>
-        </div>
-        <div class="row">
-            @Html.LabelFor(m => m.ConfirmPassword, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
-            </div>
-        </div>
-        <!-- User role selection -->
-        <div class="row mt-3">
-            <!-- added mt-3 for some margin-top -->
-            @Html.Label("UserRole", "User Role", new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.DropDownListFor(m => m.UserRole,
-                    new List<SelectListItem>
+<main aria-labelledby="title" class="container mt-4">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">@ViewBag.Title</h2>
+                </div>
+                <div class="card-body mx-auto">
+                    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
                     {
-                        new SelectListItem { Value = "Patient", Text = "Patient" },
-                        new SelectListItem { Value = "MedicalPractitioner", Text = "Medical Practitioner" }
-                    },
-                    "-- Select Role --", // Placeholder
-                    new { @class = "form-control" }
-                )
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-group">
+                            <label for="FirstName">First Name</label>
+                            @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", placeholder = "First Name" })
+                        </div>
+
+                        <div class="form-group">
+                            <label for="LastName">Last Name</label>
+                            @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", placeholder = "Last Name" })
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Email">Email</label>
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Email" })
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Password">Password</label>
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Password" })
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ConfirmPassword">Confirm Password</label>
+                            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirm Password" })
+                        </div>
+
+                        <div class="form-group">
+                            <label for="UserRole">User Role</label>
+                            @Html.DropDownListFor(m => m.UserRole,
+                                new List<SelectListItem>
+                                {
+                                    new SelectListItem { Value = "Patient", Text = "Patient" },
+                                    new SelectListItem { Value = "MedicalPractitioner", Text = "Medical Practitioner" }
+                                },
+                                "-- Select Role --", // Placeholder
+                                new { @class = "form-control" }
+                            )
+                        </div>
+
+                        <div class="form-group" id="facilityRow" style="display: none;">
+                            <label for="Facility">Facility</label>
+                            @Html.TextBoxFor(m => m.Facility, new { @class = "form-control", placeholder = "Facility" })
+                        </div>
+
+                        <div class="form-group">
+                            <input type="submit" value="Register" class="btn btn-primary btn-block" />
+                        </div>
+                    }
+                </div>
             </div>
         </div>
-        <div class="row">
-            <div class="offset-md-2 col-md-10">
-                <input type="submit" value="Register" class="btn btn-outline-dark" />
-            </div>
-        </div>
-    }
+    </div>
 </main>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwX_FOFuq5YOdd2Gd6Vc9KhefAJ396bd8&libraries=places"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var $roleDropdown = $("#UserRole");
+        var $facilityInput = $("#Facility");
+        var $registerButton = $('input[type="submit"]');
+        var autocomplete = new google.maps.places.Autocomplete($facilityInput[0]);
+
+        $roleDropdown.change(function () {
+            var $facilityRow = $("#facilityRow");
+            if ($(this).val() === "MedicalPractitioner") {
+                $facilityRow.show();
+            } else {
+                $facilityRow.hide();
+            }
+        });
+
+        $registerButton.click(function (e) {
+            if ($roleDropdown.val() === "MedicalPractitioner") {
+                e.preventDefault();
+
+                var place = autocomplete.getPlace();
+
+                if (place && place.geometry) {
+                    $(this).closest('form').submit();
+                } else {
+                    console.error('No place selected or no geometry available.');
+                    alert('Please select a valid facility location from the dropdown.');
+                    return;
+                }
+            }
+        });
+    });
+</script>
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")

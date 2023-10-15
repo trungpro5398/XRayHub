@@ -1,0 +1,143 @@
+﻿@model XRayHub.Models.PractitionerDashboardViewModel
+
+@{
+    ViewBag.Title = "Medical Practitioner Dashboard";
+}
+@using Newtonsoft.Json
+
+<!-- Required CSS and JS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@1.0.0"></script>
+<style>
+    canvas {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Medical Practitioner Dashboard</h2>
+
+    <!-- Upcoming Notifications/Appointments -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Upcoming Appointments</h5>
+            <ul>
+                @foreach (var appointment in Model.UpcomingAppointments)
+                {
+                    <li>@appointment.DateScheduled: @appointment.PatientName - @appointment.Reason</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <!-- First Row with 2 charts -->
+    <div class="row">
+        <!-- Patient Trends Line Graph -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Patient Trends</h5>
+                    <canvas id="patientTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Common Ailments Pie Chart -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Common Ailments</h5>
+                    <canvas id="commonAilmentsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second Row with 1 chart -->
+    <div class="row">
+        <!-- Appointment Load Bar Chart -->
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Appointment Load</h5>
+                    <canvas id="appointmentLoadChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@1.0.0"></script>
+<!-- Scripts -->
+@Scripts.Render("~/bundles/jquery")
+@Scripts.Render("~/bundles/bootstrap")
+<script>
+    // Patient Trends
+    var ctx1 = document.getElementById('patientTrendsChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.PatientTrends.Keys))
+,
+            datasets: [{
+                label: 'Patients Seen',
+                data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.PatientTrends.Values)),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                fill: false
+            }]
+        }
+    });
+
+
+// Common Ailments
+var ctx2 = document.getElementById('commonAilmentsChart').getContext('2d');
+new Chart(ctx2, {
+    type: 'pie',
+    data: {
+        labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.CommonAilments.Keys)),
+        datasets: [{
+            data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.CommonAilments.Values)),
+            backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)']
+        }]
+    },
+    options: {
+        plugins: {
+            datalabels: {
+                color: '#000',
+                display: 'auto',
+                align: 'center',
+                formatter: function(value, context) {
+                    return value.toString();
+                }
+            }
+        }
+    }
+});
+
+// Appointment Load
+var ctx3 = document.getElementById('appointmentLoadChart').getContext('2d');
+new Chart(ctx3, {
+    type: 'bar',
+    data: {
+        labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.AppointmentLoad.Keys)),
+        datasets: [{
+            label: 'Appointments',
+            data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.AppointmentLoad.Values)),
+            backgroundColor: 'rgba(153, 102, 255, 0.6)'
+        }]
+    },
+    options: {
+        plugins: {
+            datalabels: {
+                color: '#000',
+                display: 'auto',
+                align: 'end',
+                formatter: function(value, context) {
+                    return value.toString();
+                }
+            }
+        }
+    }
+});
+</script>

@@ -1,0 +1,94 @@
+﻿@model List<XRayHub.Models.XrayRecord>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <title>Review X-ray Records</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>X-ray Records Review</h2>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Image</th>
+                    <th>Created At</th>
+                    <th>Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var record in Model)
+                {
+                    <tr>
+                        <td>@record.Description</td>
+                        <td><img src="@Url.Content(record.XrayImagePath)" width="100" alt="X-ray image" /></td>
+                        <td>@record.CreatedAt?</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="showUpdateModal(@record.RecordID)">Update</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div id="updateModal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Record</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- Inline Form for Updating Record -->
+                    @using (Html.BeginForm("UpdateXrayRecord", "MedicalPractitioner", FormMethod.Post, new { enctype = "multipart/form-data", id = "updateRecordForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="recordIdToUpdate" name="RecordID" value="" />
+                        <div class="form-group">
+                            <label for="description">Description:</label>
+                            <input type="text" class="form-control" id="description" name="Description" required />
+                        </div>
+                        <!-- Add an input field for uploading a new X-ray image -->
+                        <div class="form-group">
+                            <label for="newXrayImage">New X-ray Image:</label>
+                            <input type="file" class="form-control-file" id="newXrayImage" name="NewXrayImage" accept="image/*" />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Record</button>
+                    }
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script>
+    function showUpdateModal(recordId) {
+    $.ajax({
+        url: '@Url.Action("GetXrayRecord", "MedicalPractitioner")',
+        data: { id: recordId },
+        success: function(data) {
+            $('#recordIdToUpdate').val(data.RecordID);
+            $('#description').val(data.Description);
+            $('#updateModal').modal('show');
+        },
+        error: function(err) {
+            alert('Failed to fetch data. Please try again later.');
+        }
+    });
+}
+
+
+   
+
+    </script>
+</body>
+</html>

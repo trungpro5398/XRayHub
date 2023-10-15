@@ -1,33 +1,68 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "XRayHub Home";
 }
 
 <main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
+    <section class="jumbotron text-center">
+        <div class="container">
+            <i class="fas fa-x-ray fa-5x text-primary"></i>
+            <h1 class="display-4 mt-3">Welcome to XRayHub</h1>
+            <p class="lead">Your Trusted Platform for Managing X-ray Records</p>
+            <p class="lead">
+                XRayHub is your one-stop solution for securely storing and managing X-ray records online.
+                Simplify your workflow and enhance patient care with our advanced features.
+            </p>
+            <p>
+                <a href="/Account/Login" class="btn btn-primary btn-lg">Get Started</a>
+
+                <a href="#" class="btn btn-secondary btn-lg">Learn More</a>
+            </p>
+        </div>
     </section>
 
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
-            </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
+    <div class="container">
+        <div class="row">
+            <section class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-folder-open fa-3x text-primary mb-3"></i>
+                        <h2 class="card-title">Easy Record Management</h2>
+                        <p class="card-text">
+                            Store, organize, and access X-ray records with ease.
+                            Our user-friendly interface simplifies the process.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <section class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-lock fa-3x text-primary mb-3"></i>
+                        <h2 class="card-title">Secure & Confidential</h2>
+                        <p class="card-text">
+                            Your patients' records are safe with us. We prioritize security
+                            and ensure confidentiality for all your data.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <section class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-globe fa-3x text-primary mb-3"></i>
+                        <h2 class="card-title">Access Anywhere</h2>
+                        <p class="card-text">
+                            Access X-ray records from anywhere, at any time, on any device.
+                            Streamline your workflow and provide better patient care.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 </main>
+
+<!-- Add the following scripts for Bootstrap and Font Awesome -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>

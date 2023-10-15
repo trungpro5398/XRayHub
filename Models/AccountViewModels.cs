@@ -81,6 +81,13 @@ namespace XRayHub.Models
         public string ConfirmPassword { get; set; }
 
         public string UserRole { get; set; }
+        public string Facility { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
+
     }
 
     public class ResetPasswordViewModel

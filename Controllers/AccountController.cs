@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using XRayHub.Models;
 
@@ -81,7 +82,22 @@ namespace XRayHub.Controllers
             switch (result)
             {
                 case SignInStatus.Success:
-                    return RedirectToLocal(returnUrl);
+                    // Check the user's role and redirect accordingly
+                    var user = await UserManager.FindByEmailAsync(model.Email);
+                    if (UserManager.IsInRole(user.Id, "Patient"))
+                    {
+                        return RedirectToAction("Dashboard", "Patient"); // Redirect to the Patient Dashboard
+                    }
+                    else if (UserManager.IsInRole(user.Id, "MedicalPractitioner"))
+                    {
+                        return RedirectToAction("Dashboard", "MedicalPractitioner"); // Redirect to the MedicalPractitioner Dashboard
+                    }
+                    else
+                    {
+                        // Handle the case where the user doesn't have a recognized role
+                        ModelState.AddModelError("", "Invalid role for the user.");
+                        return View(model);
+                    }
                 case SignInStatus.LockedOut:
                     return View("Lockout");
                 case SignInStatus.RequiresVerification:
@@ -168,12 +184,15 @@ namespace XRayHub.Controllers
                             IdentityUserID = user.Id,
                             FirstName = "trung",
                             LastName = "trung",
-                            CreatedAt = DateTime.Now
+                            CreatedAt = DateTime.Now,
+                            Email = model.Email
+
                             // ... set any other fields as necessary
                         });
                     }
                     else if (model.UserRole == "MedicalPractitioner")
                     {
+                        
                         dbContext.MedicalPractitioners.Add(new MedicalPractitioner
                         {
                             IdentityUserID = user.Id,
@@ -182,6 +201,9 @@ namespace XRayHub.Controllers
                             Email = model.Email, // Assuming Email is the same as what's provided during registration
                             CreatedAt = DateTime.Now,
                             Specialization = "sadasdasda",
+                            Facility = model.Facility,
+                            Latitude = (double)model.Latitude,
+                            Longitude = (double)model.Longitude,
                             // ... set any other fields as necessary, for example, Specialization
                         }); ;
                     }

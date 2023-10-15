@@ -1,0 +1,109 @@
+﻿@* ReviewFeedback.cshtml *@
+@model IEnumerable < XRayHub.Models.Feedback > 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Review Feedback</title>
+    <style>
+        .feedback-item:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-5">
+        <h2>Feedback Received</h2>
+        <!-- Feedbacks Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Feedbacks Filters</h5>
+                <form id="filterForm">
+                    <div class="row">
+                        <!-- Date Range -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>From Date:</label>
+                                <input type="date" id="fromDate" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>To Date:</label>
+                                <input type="date" id="toDate" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+
+
+                        <!-- Patients Filter -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Patient Name:</label>
+                                <select id="feedbackGiverID" class="form-control">
+                                    <option value="">Select Patient Name</option>
+                                    @{
+                                        var addedFeedbackGivers = new HashSet<string>();
+                                        foreach (var feedback in Model)
+                                        {
+                                            if (!addedFeedbackGivers.Contains(feedback.FeedbackGiver))
+                                            {
+                                                addedFeedbackGivers.Add(feedback.FeedbackGiver);
+                                                <option value="@feedback.PatientID">@feedback.FeedbackGiver</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @Html.Partial("_FeedbackListPartial", Model)
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script>
+        function applyFilters() {
+            // You will get the filter values using jQuery
+            let fromDate = $('#fromDate').val();
+            let toDate = $('#toDate').val();
+            let feedbackGiverID = $('#feedbackGiverID').val();
+            // Use AJAX to fetch filtered X-rays from the server
+            $.ajax({
+                url: "/MedicalPractitioner/GetFilteredFeedbacks",
+                type: "GET",
+                data: {
+                    fromDate: fromDate,
+                    toDate: toDate,
+                    patientID: feedbackGiverID
+                },
+                success: function (response) {
+                    // Assuming 'response' is the rendered HTML from the partial view.
+                    // Replace the contents of the table with the filtered results.
+                    $('.table').html(response);
+                },
+                error: function (xhr, status, error) {
+                    // Handle any errors
+                    alert("Error fetching filtered X-rays: " + error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

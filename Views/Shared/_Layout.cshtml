@@ -6,6 +6,22 @@
     <title>@ViewBag.Title - My ASP.NET Application</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    <!-- Adding font-awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>
+        /* Custom styles for sidebar links */
+        .sidebar-item:hover {
+            background-color: #28a745 !important; /* Slightly darker green for hover */
+            color: #fff !important; /* Text color on hover */
+        }
+
+        .sidebar-item.bg-success {
+            background-color: #28a745 !important; /* Active link background color */
+            color: #fff !important; /* Active link text color */
+        }
+    </style>
+
 </head>
 <body>
 
@@ -14,23 +30,68 @@
         <div id="sidebar-wrapper" class="bg-dark">
             <ul class="sidebar-nav">
                 <li class="sidebar-brand">
-                    @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand text-white" })
+                    @Html.ActionLink("XRayHub", "Index", "Home", new { area = "" }, new { @class = "navbar-brand text-white" })
+
                 </li>
                 @if (User.IsInRole("Patient"))
                 {
-                    <li>@Html.ActionLink("Dashboard", "Dashboard", "Patient", null, new { @class = "text-white" })</li>
-                    <li>@Html.ActionLink("Profile", "Profile", "Patient", null, new { @class = "text-white" })</li>
-                    <li>@Html.ActionLink("Appointments", "Appointments", "Patient", null, new { @class = "text-white" })</li>
-                    <li>@Html.ActionLink("Review X-ray Records", "ReviewRecords", "Patient", null, new { @class = "text-white" })</li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Dashboard", "Patient")">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Profile", "Patient")">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("ScheduleAppointment", "Patient")">
+                            <i class="fas fa-calendar-alt"></i> Appointments
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("ReviewRecords", "Patient")">
+                            <i class="fas fa-x-ray"></i> Review X-ray Records
+                        </a>
+                    </li>
                 }
                 else if (User.IsInRole("MedicalPractitioner"))
                 {
-                    <li>@Html.ActionLink("Dashboard", "Dashboard", "MedicalPractitioner", null, new { @class = "text-white" })</li>
-                    <li>@Html.ActionLink("Profile", "Profile", "MedicalPractitioner", null, new { @class = "text-white" })</li>
-                    <li>@Html.ActionLink("Upload X-ray", "UploadXray", "MedicalPractitioner", null, new { @class = "text-white" })</li>
-                    <li>@Html.ActionLink("Review Appointments", "ReviewAppointments", "MedicalPractitioner", null, new { @class = "text-white" })</li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Dashboard", "MedicalPractitioner")">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Profile", "MedicalPractitioner")">
+                            <i class="fas fa-user-md"></i> Profile
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("UploadXray", "MedicalPractitioner")">
+                            <i class="fas fa-upload"></i> Upload X-ray
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("ReviewXrayRecords", "MedicalPractitioner")">
+                            <i class="fas fa-x-ray"></i> Review X-ray Records
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("ReviewAppointments", "MedicalPractitioner")">
+                            <i class="fas fa-calendar-check"></i> Review Appointments
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("ReviewFeedbacks", "MedicalPractitioner")">
+                            <i class="fas fa-comments"></i> Review Feedback
+                        </a>
+                    </li>
                 }
             </ul>
+
+
         </div>
         <!-- /#sidebar-wrapper -->
         <!-- Page Content -->
@@ -39,7 +100,23 @@
 
                 <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark mb-3">
                     <div class="container">
-                        @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            if (User.IsInRole("Patient"))
+                            {
+                                @Html.ActionLink("Dashboard", "Dashboard", "Patient", new { area = "" }, new { @class = "nav-link" })
+                                @*<i class="fas fa-tachometer-alt"></i>*@
+                            }
+                            else
+                            {
+                                @Html.ActionLink("XRayHub", "Dashboard", "MedicalPractitioner", new { area = "" }, new { @class = "navbar-brand" })
+
+                            }
+                        }
+                        else
+                        {
+                            @Html.ActionLink("XRayHub", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                        }
                         <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
                                 aria-expanded="false" aria-label="Toggle navigation">
                             <span class="navbar-toggler-icon"></span>
@@ -52,21 +129,37 @@
                         </div>
                     </div>
                 </nav>
-                <button class="btn btn-dark" id="menu-toggle">Toggle Menu</button>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <button class="btn btn-dark" id="menu-toggle"><i class="fas fa-bars"></i> Toggle Menu</button>
+                }
+
                 @RenderBody()
             </div>
         </div>
         <!-- /#page-content-wrapper -->
+        <!-- Include the chatbot partial view -->
+
+        @Html.Partial("~/Views/Chat/_ChatbotPartial.cshtml")
     </div>
 
     <!-- Scripts -->
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+
     <script>
-    $("#menu-toggle").click(function (e) {
-        e.preventDefault();
-        $("#wrapper").toggleClass("toggled");
-    });
+        $("#menu-toggle").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+
+        // Highlight active sidebar link
+        $(".sidebar-nav li").each(function () {
+            if ($(this).find('a').attr('href') == window.location.pathname) {
+                $(this).addClass('bg-success'); // Change the background color for active link
+            }
+        });
+
     </script>
     @RenderSection("scripts", required: false)
 

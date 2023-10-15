@@ -1,0 +1,39 @@
+﻿@model XRayHub.Models.UploadXrayViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<!-- ... (head content) ... -->
+<body>
+    <div class="container mt-5">
+        <h2>Upload X-ray</h2>
+        @using (Html.BeginForm("UploadXray", "Xray", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label for="PatientId">Patient</label>
+                @Html.DropDownListFor(m => m.PatientId, Model.Patients, "Select a patient", new { @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="TypeId">X-ray Type</label>
+                @Html.DropDownListFor(m => m.TypeId, Model.XrayTypes, "Select an X-ray type", new { @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="XrayImage">X-ray Image</label>
+                <input type="file" name="XrayImage" class="form-control-file" required />
+            </div>
+
+            <!-- Adding Description Field -->
+            <div class="form-group">
+                <label for="Description">Description</label>
+                @Html.TextAreaFor(m => m.Description, new { @class = "form-control", @rows = 3 })
+                @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger" })
+            </div>
+
+            <button type="submit" class="btn btn-primary">Upload</button>
+        }
+    </div>
+</body>
+</html>

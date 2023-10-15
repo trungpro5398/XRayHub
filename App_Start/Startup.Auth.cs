@@ -58,11 +58,11 @@ namespace XRayHub
             //   appId: "",
             //   appSecret: "");
 
-            //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
-            //{
-            //    ClientId = "",
-            //    ClientSecret = ""
-            //});
+            app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
+            {
+                ClientId = "920552727171-meibj8se1vb6hpl7cfk07d1s3fl5uepa.apps.googleusercontent.com",
+                ClientSecret = "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"
+            });
         }
     }
 }

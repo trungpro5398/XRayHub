@@ -1,0 +1,139 @@
+﻿@model XRayHub.Models.PatientDashboardViewModel
+
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+<!-- Required CSS and JS -->
+<!-- Required CSS and JS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .card {
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+        transition: 0.3s;
+    }
+
+        .card:hover {
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+        }
+
+    .list-group-item:hover {
+        background-color: #f5f5f5;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Patient Dashboard</h2>
+
+    <!-- Appointment Frequency Line Graph -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Appointment Frequency</h5>
+            <canvas id="appointmentFrequencyChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">X-ray Timeline</h5>
+            <canvas id="xrayTimelineChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Notification Center -->
+    <div class="card mt-5">
+        <div class="card-header">
+            Notification Center
+        </div>
+        <ul class="list-group list-group-flush">
+            @if (Model.Notifications.Any())
+            {
+                foreach (var notification in Model.Notifications.OrderBy(n => n.Date))
+                {
+                    <li class="list-group-item">
+                        <i class="fas fa-bell"></i> <!-- Icon for notifications -->
+                        @notification.Message
+                        <span class="badge badge-primary float-right">@notification.Date.ToString("MMMM dd, yyyy")</span>
+                    </li>
+                }
+            }
+            else
+            {
+                <li class="list-group-item">No notifications available.</li>
+            }
+        </ul>
+    </div>
+
+</div>
+@Html.Partial("~/Views/Chat/_ChatbotPartial.cshtml")
+
+<!-- Scripts -->
+@Scripts.Render("~/bundles/jquery")
+@Scripts.Render("~/bundles/bootstrap")
+<!-- Assuming you are using Font Awesome for icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+<script>
+    var gradient1 = document.getElementById('appointmentFrequencyChart').getContext('2d').createLinearGradient(0, 0, 0, 400);
+    gradient1.addColorStop(0, 'rgba(75, 192, 192, 0.5)');
+    gradient1.addColorStop(1, 'rgba(75, 192, 192, 0.05)');
+
+    var gradient2 = document.getElementById('xrayTimelineChart').getContext('2d').createLinearGradient(0, 0, 0, 400);
+    gradient2.addColorStop(0, 'rgba(255, 99, 132, 0.5)');
+    gradient2.addColorStop(1, 'rgba(255, 99, 132, 0.05)');
+
+    /* Rest of the script remains same, but update the backgroundColor for datasets to use gradient1 and gradient2 */
+</script>
+
+
+
+
+<script>
+    var ctx1 = document.getElementById('appointmentFrequencyChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(Json.Encode(Model.Appointments.Select(a => a.DateScheduled.ToString("MMMM")))),
+            datasets: [{
+                label: 'Appointments',
+                data: @Html.Raw(Json.Encode(Model.Appointments.GroupBy(a => a.DateScheduled.Month).Select(g => g.Count()))),
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    var ctx2 = document.getElementById('xrayTimelineChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line', // or 'bar' or any other suitable visualization
+        data: {
+            labels: @Html.Raw(Json.Encode(Model.XrayTimeline.Select(x => x.CreatedAt?.ToString("MMMM")))),
+            datasets: [{
+                label: 'X-rays',
+                data: @Html.Raw(Json.Encode(Model.XrayTimeline.Select(x => x.Description))), // or any relevant metric
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+</script>

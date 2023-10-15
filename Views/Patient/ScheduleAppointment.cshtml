@@ -1,0 +1,318 @@
+﻿@{
+    ViewBag.Title = "ScheduleAppointment";
+}
+
+@model XRayHub.Models.AppointmentViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Meta, Title, and CSS Links -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Appointment</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        #calendarIcon:hover {
+            cursor: pointer;
+            background-color: #e9ecef;
+        }
+
+        #map {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body onload="initMap()">
+
+    <div class="container mt-5">
+        <h2>Select a Facility</h2>
+        <div id="map"></div>
+
+
+
+        <h2>Schedule an Appointment</h2>
+        @using (Html.BeginForm("ScheduleAppointment", "Patient", FormMethod.Post, new { onsubmit = "return combineDateAndTime();" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="PractitionerID" name="PractitionerID" required />
+            <!-- Facilities Selection -->
+
+            <div class="form-group">
+                <label for="facilities">Choose a facility:</label>
+                <select class="form-control" id="facilities" onchange="populatePractitionerDropdown()">
+                    @if (ViewBag.Facilities != null)
+                    {
+                        foreach (var facility in ViewBag.Facilities)
+                        {
+                            <option value="@facility">@facility</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="">No facilities available</option>
+                    }
+                </select>
+            </div>
+
+
+            <!-- Practitioner Selection -->
+            <div class="form-group">
+                <label for="practitioners">Choose a practitioner:</label>
+                <select class="form-control" id="practitioners" onchange="selectPractitioner()">
+                </select>
+            </div>
+
+
+            <!-- Date Picker -->
+            <div class="form-group">
+                <label for="appointmentDate">Date:</label>
+                <div class="input-group">
+                    <input type="text" id="appointmentDate" name="SelectedDate" class="form-control" required>
+
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="calendarIcon"><i class="fa fa-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+            <!-- Time Picker -->
+            <div class="form-group">
+                <label for="appointmentTime">Time:</label>
+                <select class="form-control" id="appointmentTime" name="TimeScheduled" required onchange="alertTimeSelection()">
+
+                    <!-- Times will be populated using JavaScript -->
+                </select>
+            </div>
+
+            <!-- Reason for Appointment -->
+            <div class="form-group">
+                <label for="reason">Reason:</label>
+                <textarea id="reason" name="Reason" class="form-control" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Schedule</button>
+            </div>
+            <input type="hidden" id="DateScheduled" name="DateScheduled" required>
+        }
+
+    </div>
+    @Html.Partial("~/Views/Chat/_ChatbotPartial.cshtml")
+
+    <!-- Scripts -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+    //
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwX_FOFuq5YOdd2Gd6Vc9KhefAJ396bd8&libraries=places"></script>
+
+    <script>
+        function initMap() {
+            var centerLocation = { lat: -37.814, lng: 144.96332 };
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 10,
+                center: centerLocation
+            });
+
+            var groupedPractitioners = {};
+
+            @foreach (var practitioner in ViewBag.Practitioners)
+            {
+                <text>
+                var locationKey = '@practitioner.Latitude' + '_' + '@practitioner.Longitude';
+                if (!groupedPractitioners[locationKey]) {
+                    groupedPractitioners[locationKey] = [];
+                }
+                groupedPractitioners[locationKey].push({
+                    id: '@practitioner.PractitionerID',
+                    name: '@practitioner.FirstName @practitioner.LastName',
+                      facilityName: '@practitioner.Facility'
+                });
+                </text>
+            }
+
+            for (var locationKey in groupedPractitioners) {
+                var latLng = locationKey.split('_');
+                var markerPos = { lat: parseFloat(latLng[0]), lng: parseFloat(latLng[1]) };
+
+                var facilityName = groupedPractitioners[locationKey][0].facilityName; // Assumes all practitioners at a location are from the same facility!
+
+                var marker = new google.maps.Marker({
+                    position: markerPos,
+                    map: map
+                });
+
+                var practitionerInfo = '<ul>';
+                groupedPractitioners[locationKey].forEach(function (practitioner) {
+                    practitionerInfo += '<li onclick="selectPractitioner(\'' + practitioner.id + '\', \'' + practitioner.name + '\')">' + practitioner.name + '</li>';
+                });
+                practitionerInfo += '</ul>';
+
+                var infowindow = new google.maps.InfoWindow({
+                    content: practitionerInfo
+                });
+
+                marker.addListener('click', function (markerReference, facilityName) {
+                    return function () {
+                        infowindow.open(map, markerReference);
+                        // Update the facility dropdown to match the clicked facility.
+                        $("#facilities").val(facilityName).change(); // Ensuring dropdown option values match facility names.
+                    }
+                }(marker, facilityName)); // Passing our marker and facility name to the click listener
+            }
+
+        }
+
+
+
+        function checkTimeSlotAvailability(practitionerId, dateTime) {
+            $.ajax({
+                url: '/Patient/CheckAvailability',
+                type: 'GET',
+                data: { practitionerId: practitionerId, appointmentDateTime: dateTime },
+                success: function (isAvailable) {
+                    if (!isAvailable) {
+                        // If slot is not available, alert the user.
+                        alert('The selected time slot is not available. Please choose a different time.');
+                        // Optionally, you could disable the submit button to prevent form submission
+                         $('button[type="submit"]').prop('disabled', true);
+                    } else {
+                        // If slot is available, enable the submit button (if previously disabled)
+                        $('button[type="submit"]').prop('disabled', false);
+                    }
+                },
+                error: function () {
+                    alert('An error occurred while checking the time slot availability. Please try again later.');
+                }
+            });
+        }
+
+        // New function to populate practitioners based on selected facility
+    function populatePractitionerDropdown() {
+        // Clear current options
+            $("#practitioners").empty();
+
+            var selectedFacilityName = $("#facilities option:selected").text();
+
+            $.ajax({
+                url: '/Patient/GetPractitionersByFacility',
+                type: 'GET',
+                data: { facilityName: selectedFacilityName },
+
+                success: function (data) {
+                    data.forEach(function (practitioner) {
+                        $("#practitioners").append(new Option(practitioner.FirstName + ' ' + practitioner.LastName, practitioner.PractitionerID));
+                    });
+                    selectPractitioner(); // Update the selected practitioner when the dropdown changes.
+                }
+            });
+        }
+
+        function convert12To24HourTime(time) {
+            const timeArray = time.match(/(\d+):(\d+) (\w+)/);
+            let hour = parseInt(timeArray[1], 10);
+            const minute = parseInt(timeArray[2], 10);
+            const period = timeArray[3].toLowerCase();
+
+            if (period === 'pm' && hour < 12) hour += 12;
+            else if (period === 'am' && hour === 12) hour = 0;
+
+            return { hour, minute };
+        }
+
+        function getDateTimeObject(date, time) {
+            const { hour, minute } = convert12To24HourTime(time);
+            const dateTime = new Date(date);
+            dateTime.setHours(hour, minute, 0, 0);
+            return dateTime;
+        }
+
+        function alertTimeSelection() {
+            const selectedTime = $("#appointmentTime option:selected").text();
+            const selectedDate = $("#appointmentDate").val();
+            const selectedPractitionerId = $("#PractitionerID").val();
+
+            const dateTime = getDateTimeObject(selectedDate, selectedTime);
+
+            // Convert the Date object to ISO format
+            const isoDateTime = dateTime.toISOString();
+            console.log(isoDateTime);
+
+            // Check if the slot is available
+            checkTimeSlotAvailability(selectedPractitionerId, isoDateTime);
+        }
+
+        function combineDateAndTime() {
+            // Get the selected date and time
+            const selectedDate = $("#appointmentDate").val();
+            const selectedTime = $("#appointmentTime option:selected").text();
+
+
+            const dateTime = getDateTimeObject(selectedDate, selectedTime);
+
+            const isoString = dateTime.toISOString();
+            $("input[name='DateScheduled']").val(isoString);
+
+
+            return true;  // Allow the form to submit
+        }
+
+
+        function populateTimeSlots() {
+            const timeDropdown = $("#appointmentTime");
+            timeDropdown.empty(); // Clear current options
+
+            for (let hour = 8; hour <= 16; hour++) { // From 8 am (8) to 5 pm (16)
+                let amOrPm = hour < 12 ? 'am' : 'pm';
+                let displayHour = hour <= 12 ? hour : hour - 12;
+                let timeSlot = `${displayHour}:00 ${amOrPm}`;
+                timeDropdown.append(new Option(timeSlot, hour));
+            }
+        }
+
+
+    function selectPractitioner() {
+        var selectedPractitionerName = $("#practitioners option:selected").text();
+        var selectedPractitionerId = $("#practitioners").val();
+
+        $('#selectedPractitionerName').text(selectedPractitionerName);
+        $('#PractitionerID').val(selectedPractitionerId);
+        $('#selectedPractitioner').show();
+    }
+
+     $.noConflict();
+     jQuery(document).ready(function ($) {
+        // Datepicker setup
+        $("#appointmentDate").datepicker({
+            format: 'mm/dd/yyyy',
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        // Icon click focuses the date input
+        $("#calendarIcon").click(function() {
+            $("#appointmentDate").focus();
+        });
+
+        // Populate practitioner on facility change
+        $("#facilities").change(function() {
+            populatePractitionerDropdown();
+            selectPractitioner();
+        });
+        populateTimeSlots();
+        // Initialize practitioners dropdown
+        populatePractitionerDropdown();
+
+        // Set initial selected practitioner
+        selectPractitioner();
+    });
+
+    </script>
+</body>
+</html>
